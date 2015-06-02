@@ -33,14 +33,13 @@
 <template name="search">
   <div class="container">
     <h1>Device Connection</h1>
-
-    <div class="row">
-      <div class="col-xs-6">
-        <button class="ut-btn search">Search</button>
-      </div>
-      <div class="col-xs-6">
-        <button class="ut-btn stopsearch">Stop Search</button>
-      </div>
+    <div class="col-xs-6 col-xs-offset-3">
+    <button id="searchButton" class="ut-btn {{searchButtonClass}}">
+        {{#if isSearching}}
+            Stop
+        {{/if}}
+        Search
+    </button>
     </div>
   </div>
 
@@ -52,6 +51,8 @@
   {{#if hasDeviceInfo}}
 
     <h4>Device Information</h4>
+    isSearching: {{isSearching}}
+    <br>
     {{#if name }}
       <div>Name: {{ name }}</div>
     {{/if}}
