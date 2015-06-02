@@ -1,9 +1,4 @@
 if (Meteor.isClient) {
-  Meteor.startup(function () {
-    Session.set('isSearching',false);
-    Session.set('isMeasuring',false);
-  });
-
   // counter starts at 0
   var bpDisplayScale;
 
@@ -20,52 +15,6 @@ if (Meteor.isClient) {
     }
   });
 
-  Template.search.events({
-    'click #searchButton' : function () {
-      isSearching = Session.get('isSearching');
-      if (isSearching) {
-        Session.set('isSearching',false);
-        console.log('stopsearch!');
-
-        var success = function(message){
-          console.log(message);
-
-          Session.set('testType', 'search');
-          Session.set('status-msg', message);
-        }
-
-        var failure = function(message){
-          console.log(message);
-          Session.set('status-msg', message);
-        }
-        BpManagerCordova.stopMeasure("8CDE52143F1E", success, failure);
-
-      } else {
-        Session.set('isSearching',true);
-        console.log('search...');
-        var success = function(message){
-          console.log(message);
-
-          Session.set('testType', 'search');
-          Session.set('measurements', undefined);
-
-          var parsedMsg = JSON.parse(message);
-          var info = { "address": parsedMsg["address"],
-            "name": parsedMsg["name"] };
-
-          Session.set('device-info', info);
-          Session.set('status-msg', parsedMsg["msg"]);
-        }
-
-        var failure = function(message){
-          console.log(message);
-          Session.set('status-msg', message);
-        }
-        Session.set('status-msg', "searching...");
-        BpManagerCordova.search("", success, failure, "test");
-      }
-    }
-  });
   Template.search.helpers({
     hasDeviceInfo: function() {
       return (Session.get('device-info') !== undefined);
@@ -75,19 +24,6 @@ if (Meteor.isClient) {
     },
     address: function() {
       return Session.get('device-info')["address"];
-    },
-    isSearching: function () {
-      return Session.get('isSearching');
-    },
-    isMeasuring: function () {
-      return Session.get('isMeasuring');
-    },
-    searchButtonClass: function () {
-      if (Session.get('isMeasuring')) {
-        return 'stopsearch'
-      } else {
-        return 'search'
-      }
     }
   });
 
@@ -174,35 +110,33 @@ if (Meteor.isClient) {
       $('.nav-btn').toggleClass('hidden');
     },
     
-    //'click .search' : function () {
-    //  console.log('search...');
-    //  Session.set('isSearching',true);
-    //  var success = function(message){
-    //    console.log(message);
-    //
-    //    Session.set('testType', 'search');
-    //    Session.set('measurements', undefined);
-    //
-    //    var parsedMsg = JSON.parse(message);
-    //    var info = { "address": parsedMsg["address"],
-    //      "name": parsedMsg["name"] };
-    //
-    //    Session.set('device-info', info);
-    //    Session.set('status-msg', parsedMsg["msg"]);
-    //  }
-    //
-    //  var failure = function(message){
-    //    console.log(message);
-    //    Session.set('status-msg', message);
-    //  }
-    //  Session.set('status-msg', "searching...");
-    //  BpManagerCordova.search("", success, failure, "test");
-    //},
+    'click .search' : function () {
+      console.log('search...');
+      var success = function(message){
+        console.log(message);
+
+        Session.set('testType', 'search');
+        Session.set('measurements', undefined);
+
+        var parsedMsg = JSON.parse(message);
+        var info = { "address": parsedMsg["address"],
+                     "name": parsedMsg["name"] };
+
+        Session.set('device-info', info);
+        Session.set('status-msg', parsedMsg["msg"]);
+      }
+
+      var failure = function(message){
+        console.log(message);
+        Session.set('status-msg', message);
+      }
+      Session.set('status-msg', "searching..."); 
+      BpManagerCordova.search("", success, failure, "test");
+    },
     
     'click .startmeasure' : function () {
       console.log('start!');
       var success = function(message){
-        Session.set('isMeasuring',true);
         console.log(message);
 
         Session.set('testType', 'measure');
@@ -255,23 +189,23 @@ if (Meteor.isClient) {
 
     },
 
-    //'click .stopsearch' : function () {
-    //  console.log('stopsearch!');
-    //
-    //  var success = function(message){
-    //    console.log(message);
-    //
-    //    Session.set('testType', 'search');
-    //    Session.set('status-msg', message);
-    //  }
-    //
-    //  var failure = function(message){
-    //    console.log(message);
-    //    Session.set('status-msg', message);
-    //  }
-    //  BpManagerCordova.stopMeasure("8CDE52143F1E", success, failure);
-    //
-    //},
+    'click .stopsearch' : function () {
+      console.log('stopsearch!');
+
+      var success = function(message){
+        console.log(message);
+
+        Session.set('testType', 'search');
+        Session.set('status-msg', message);
+      }
+
+      var failure = function(message){
+        console.log(message);
+        Session.set('status-msg', message);
+      }
+      BpManagerCordova.stopMeasure("8CDE52143F1E", success, failure);
+
+    },
 
     'click .enableOffline' : function () {
       console.log('enableOffline!');
