@@ -76,17 +76,18 @@ if (Meteor.isClient) {
     address: function() {
       return Session.get('device-info')["address"];
     },
-    isSearching: function () {
-      return Session.get('isSearching');
-    },
-    isMeasuring: function () {
-      return Session.get('isMeasuring');
-    },
     searchButtonClass: function () {
-      if (Session.get('isMeasuring')) {
+      if (Session.get('isSearching')) {
         return 'stopsearch'
       } else {
         return 'search'
+      }
+    },
+    searchButtonLabel: function () {
+      if (Session.get('isSearching')) {
+        return 'Stop Search'
+      } else {
+        return 'Search'
       }
     }
   });
@@ -101,18 +102,79 @@ if (Meteor.isClient) {
     bpDisplayScale = w / 16.737;
   };
 
+  Template.measure.events({
+    'click #measureButton' : function () {
+      isMeasuring = Session.get('isMeasuring');
+      if (isMeasuring) {
+        Session.set('isMeasuring',false);
+        console.log('stopmeasure!');
+        var success = function(message){
+          console.log(message);
+
+          Session.set('testType', 'measure');
+          Session.set('status-msg', message);
+        }
+
+        var failure = function(message){
+          console.log(message);
+
+          Session.set('status-msg', message);
+        }
+        BpManagerCordova.stopMeasure("8CDE52143F1E", success, failure);
+
+      } else {
+
+        console.log('start!');
+        var success = function(message){
+          Session.set('isMeasuring',true);
+          console.log(message);
+
+          Session.set('testType', 'measure');
+          Session.set('status-msg', 'Reading...');
+
+          var info, measurements, status;
+
+          try {
+            var parsedMsg = JSON.parse(message);
+
+            if (parsedMsg["address"]) {
+              info = { "address": parsedMsg["address"] };
+              delete parsedMsg["address"];
+            }
+            if (parsedMsg["wave"]) {
+              delete parsedMsg["wave"];
+            }
+            measurements = parsedMsg;
+          } catch (e) {
+            status = message;
+          }
+          Session.set('device-info', info);
+          Session.set('status-msg', status);
+          Session.set('measurements', measurements);
+        }
+
+        var failure = function(message){
+          console.log(message);
+
+          Session.set('status-msg', message);
+        }
+        BpManagerCordova.startMeasure("8CDE52143F1E", success, failure, "test");
+        }
+      }
+    });
+
   Template.measure.helpers({
-    hasReadings: function() {
+    hasReadings: function () {
       return (Session.get('measurements') !== undefined);
     },
-    getCircleAttrs: function(bp) {
+    getCircleAttrs: function (bp) {
       var d = Math.round(Math.sqrt(bp / Math.PI) * 2 * bpDisplayScale);
 
       return "width: " + d + "px; height: " + d + "px;";
     },
-    bpNumDisplay: function() {
+    bpNumDisplay: function () {
       var readings = Session.get('measurements');
-      
+
       if (readings) {
         if (readings.pressure) {
           return readings.pressure;
@@ -124,33 +186,33 @@ if (Meteor.isClient) {
         return "";
       }
     },
-    bpMeasure: function() {
+    bpMeasure: function () {
       var bp = Session.get('measurements').pressure;
 
       return (bp ? bp : "");
     },
-    bpSystolic: function() {
+    bpSystolic: function () {
       var bp = Session.get('measurements').highpressure;
-      
+
       return (bp ? bp : "");
     },
-    bpDiastolic: function() {
+    bpDiastolic: function () {
       var bp = Session.get('measurements').lowpressure;
-      
+
       return (bp ? bp : "");
     },
-    heartRate: function() {
+    heartRate: function () {
       var hr = Session.get('measurements').heartrate;
 
       return (hr ? hr : "");
     },
-    arrythmia: function() {
+    arrythmia: function () {
       var a = Session.get('measurements').arrythmia;
-      
+
       return (a ? a : "");
     },
-    labelForKey: function(key) {
-      switch(key) {
+    labelForKey: function (key) {
+      switch (key) {
         case "highpressure":
           return "Systolic";
         case "lowpressure":
@@ -161,8 +223,22 @@ if (Meteor.isClient) {
           return key.charAt(0).toUpperCase() + key.slice(1);
       }
     },
-    readingForKey: function(key) {
+    readingForKey: function (key) {
       return Session.get('measurements')[key];
+    },
+    measureButtonClass: function () {
+      if (Session.get('isMeasuring')) {
+        return 'stopmeasure'
+      } else {
+        return 'startmeasure'
+      }
+    },
+    measureButtonLabel: function () {
+      if (Session.get('isMeasuring')) {
+        return 'Stop Measure'
+      } else {
+        return 'Start Measure'
+      }
     }
   });
 
@@ -173,105 +249,6 @@ if (Meteor.isClient) {
       Session.set('testType', $(btn).data("navkey"));
       $('.nav-btn').toggleClass('hidden');
     },
-    
-    //'click .search' : function () {
-    //  console.log('search...');
-    //  Session.set('isSearching',true);
-    //  var success = function(message){
-    //    console.log(message);
-    //
-    //    Session.set('testType', 'search');
-    //    Session.set('measurements', undefined);
-    //
-    //    var parsedMsg = JSON.parse(message);
-    //    var info = { "address": parsedMsg["address"],
-    //      "name": parsedMsg["name"] };
-    //
-    //    Session.set('device-info', info);
-    //    Session.set('status-msg', parsedMsg["msg"]);
-    //  }
-    //
-    //  var failure = function(message){
-    //    console.log(message);
-    //    Session.set('status-msg', message);
-    //  }
-    //  Session.set('status-msg', "searching...");
-    //  BpManagerCordova.search("", success, failure, "test");
-    //},
-    
-    'click .startmeasure' : function () {
-      console.log('start!');
-      var success = function(message){
-        Session.set('isMeasuring',true);
-        console.log(message);
-
-        Session.set('testType', 'measure');
-        Session.set('status-msg', 'Reading...');
-
-        var info, measurements, status;
-
-        try {
-          var parsedMsg = JSON.parse(message);
-          
-          if (parsedMsg["address"]) {
-            info = { "address": parsedMsg["address"] };
-            delete parsedMsg["address"];
-          }
-          if (parsedMsg["wave"]) {
-            delete parsedMsg["wave"];
-          }
-          measurements = parsedMsg;
-        } catch (e) {
-          status = message;
-        }
-        Session.set('device-info', info);
-        Session.set('status-msg', status);
-        Session.set('measurements', measurements);
-      }
-
-      var failure = function(message){
-        console.log(message);
-
-        Session.set('status-msg', message);
-      }
-      BpManagerCordova.startMeasure("8CDE52143F1E", success, failure, "test");
-    },
-    
-    'click .stopmeasure' : function () {
-      console.log('stopmeasure!');
-      var success = function(message){
-        console.log(message);
-
-        Session.set('testType', 'measure');
-        Session.set('status-msg', message);
-      }
-
-      var failure = function(message){
-        console.log(message);
-
-        Session.set('status-msg', message);
-      }
-      BpManagerCordova.stopMeasure("8CDE52143F1E", success, failure);
-
-    },
-
-    //'click .stopsearch' : function () {
-    //  console.log('stopsearch!');
-    //
-    //  var success = function(message){
-    //    console.log(message);
-    //
-    //    Session.set('testType', 'search');
-    //    Session.set('status-msg', message);
-    //  }
-    //
-    //  var failure = function(message){
-    //    console.log(message);
-    //    Session.set('status-msg', message);
-    //  }
-    //  BpManagerCordova.stopMeasure("8CDE52143F1E", success, failure);
-    //
-    //},
 
     'click .enableOffline' : function () {
       console.log('enableOffline!');

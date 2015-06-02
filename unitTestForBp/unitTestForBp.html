@@ -35,10 +35,7 @@
     <h1>Device Connection</h1>
     <div class="col-xs-6 col-xs-offset-3">
     <button id="searchButton" class="ut-btn {{searchButtonClass}}">
-        {{#if isSearching}}
-            Stop
-        {{/if}}
-        Search
+        {{ searchButtonLabel }}
     </button>
     </div>
   </div>
@@ -49,10 +46,7 @@
 
   <div class="container">
   {{#if hasDeviceInfo}}
-
     <h4>Device Information</h4>
-    isSearching: {{isSearching}}
-    <br>
     {{#if name }}
       <div>Name: {{ name }}</div>
     {{/if}}
@@ -65,14 +59,10 @@
 <template name="measure">
   <div class="container">
     <h1>Measurements</h1>
-
-    <div class="row">
-      <div class="col-xs-6">
-        <button class="ut-btn startmeasure">Start Measure</button>
-      </div>
-      <div class="col-xs-6">        
-        <button class="ut-btn stopmeasure">Stop Measure</button>
-      </div>
+    <div class="col-xs-6 col-xs-offset-3">
+      <button id="measureButton" class="ut-btn {{ measureButtonClass }}">
+        {{ measureButtonLabel }}
+      </button>
     </div>
   </div>
 
