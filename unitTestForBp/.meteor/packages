@@ -10,3 +10,4 @@ insecure
 twbs:bootstrap
 fortawesome:fontawesome
 jquery
+semantic:ui-transition

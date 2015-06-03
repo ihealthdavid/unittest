@@ -245,9 +245,22 @@ if (Meteor.isClient) {
   Template.unittest.events({
 
     'click .nav-btn' : function () {
-      var btn = $.find(".nav-btn:visible")[0];
-      Session.set('testType', $(btn).data("navkey"));
-      $('.nav-btn').toggleClass('hidden');
+      $('#animate')
+        .transition({
+          animation  : 'horizontal flip',
+          duration   : '0.5s',
+          onComplete : function() {
+            var btn = $.find(".nav-btn:visible")[0];
+            Session.set('testType', $(btn).data("navkey"));
+            $('.nav-btn').toggleClass('hidden');
+        }});
+
+      $('#animate')
+        .transition({
+          animation  : 'horizontal flip',
+          duration   : '0.5s'
+        });
+
     },
 
     'click .enableOffline' : function () {
